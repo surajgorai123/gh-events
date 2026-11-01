@@ -9,25 +9,37 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./04 Practice Project (Start)
     steps:
       - name: Output event data
         run: 'echo "Event Data: ${{ toJson(github.event) }}"'
       - name: Get code
         uses: actions/checkout@v4
+      - name: Find app directory
+        id: project
+        run: |
+          if [ -f "package.json" ]; then
+            echo "directory=." >> "$GITHUB_OUTPUT"
+          elif [ -f "04 Practice Project (Start)/package.json" ]; then
+            echo "directory=04 Practice Project (Start)" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Could not find package.json in the repository root or app directory"
+            exit 1
+          fi
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: 04 Practice Project (Start)/package-lock.json
+          cache-dependency-path: ${{ steps.project.outputs.directory }}/package-lock.json
       - name: Install dependencies
         run: npm ci
+        working-directory: ${{ steps.project.outputs.directory }}
       - name: Test code
         run: npm run test
+        working-directory: ${{ steps.project.outputs.directory }}
       - name: Build
         run: npm run build
+        working-directory: ${{ steps.project.outputs.directory }}
       - name: Deploy code
         run: echo "Deploying..."
+        working-directory: ${{ steps.project.outputs.directory }}
