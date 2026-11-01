@@ -1,0 +1,33 @@
+name: Events Demo 1
+
+on:
+  pull_request:
+    types:
+      - opened
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./04 Practice Project (Start)
+    steps:
+      - name: Output event data
+        run: 'echo "Event Data: ${{ toJson(github.event) }}"'
+      - name: Get code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: 04 Practice Project (Start)/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Test code
+        run: npm run test
+      - name: Build
+        run: npm run build
+      - name: Deploy code
+        run: echo "Deploying..."
